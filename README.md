@@ -171,3 +171,63 @@ docker exec -it gitlab-runner gitlab-runner register
 docker restart gitlab-runner
 ```
 После этого новйы runner должен отобразиться в gitlab
+
+```
+stages:
+
+- prepare
+
+- compilation
+
+# - build_images
+
+# - cleanup
+
+  
+
+# Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, если в репозитории уже лежит скомпилированная библиотека)
+
+prepare_server:
+
+stage: prepare
+
+script:
+
+- echo "START PREPARE STAGE"
+
+- ls -la
+
+- apk add --no-cache wget unzip
+
+- wget https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
+
+- unzip /home/sqlite3/sqlite-amalgamation-3260000.zip
+
+- rm -rf /home/sqlite3/sqlite-amalgamation-3260000.zip
+
+- ls -la
+
+only:
+
+- branch_runner
+
+artifacts:
+
+paths:
+
+- /home/sqlite3/sqlite-amalgamation-3260000/
+
+  
+
+compilation_binory:
+
+stage: compilation
+
+script:
+
+- ls -la
+
+only:
+
+- branch_runner
+```
