@@ -4,3 +4,8 @@ shell.c
 sqlite3.c
 sqlite3.h
 sqlite3ext.h
+compilation.log
+Vagrantfile
+all_in_vagrant.yaml
+install_docker.yaml
+inventory.ini
