@@ -152,7 +152,7 @@ ansible-playbook install_docker.yaml -i inventory.ini --ask-become-pass
 
 ## 8. Дополнительная часть
 Теперь надо сделать пункты 1-4 с помощью gitlab-ci. Для этого нужно запустить свой gitlab runner. Я буду это делать с помощью docker
-``` bash
+```bash
 docker pull gitlab/gitlab-runner:latest   
 
 # Делаем сохранение конфигов и поддержку запуска контейнеров внутри контейнера
