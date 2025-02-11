@@ -170,4 +170,4 @@ docker exec -it gitlab-runner gitlab-runner register
 # Перезапускаем для принятия изменения
 docker restart gitlab-runner
 ```
-После этого новйы runner должен отобразиться в gitlab.
+После этого новйы runner должен отобразиться в gitlab
