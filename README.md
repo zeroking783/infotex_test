@@ -151,3 +151,23 @@ ansible-playbook install_docker.yaml -i inventory.ini --ask-become-pass
 Все выполняет playbook (all_in_vagrant.yaml). Логи сохраняются в привычную директорию /var/log/sqlite3/compilation.log. Также к docker build на виртуальной машине добавил docker pull image.
 
 ## 8. Дополнительная часть
+Теперь надо сделать пункты 1-4 с помощью gitlab-ci. Для этого нужно запустить свой gitlab runner. Я буду это делать с помощью docker
+```bash
+docker pull gitlab/gitlab-runner:latest   
+
+# Делаем сохранение конфигов и поддержку запуска контейнеров внутри контейнера
+docker run -d --name gitlab-runner \
+  --restart always \
+  -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  gitlab/gitlab-runner:latest
+
+# Регистрируем gitlab runner
+# Executor - docker
+# Токен берется в самом gitlab
+docker exec -it gitlab-runner gitlab-runner register
+
+# Перезапускаем для принятия изменения
+docker restart gitlab-runner
+```
+После этого новйы runner должен отобразиться в gitlab.
