@@ -5,5 +5,3 @@ test_job:
   stage: test
   script:
     - echo "Hello, GitLab CI!"
-  only:
-    - branch_runner
