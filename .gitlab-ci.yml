@@ -1,35 +1,29 @@
 stages:
-  - check
   - prepare
   - compilation
   - build_images
   - cleanup
 
-# Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, если в репозитории уже лежит скомпилированная библиотека)
-check_and_preparation:
-    stage: check
-    tags: [home-server]
-    image: alpine:3.14
-    script:
-      - ls -la 
-
+# Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, 
+# если в репозитории уже лежит скомпилированная библиотека).
+# Поэтому в первом stage скачиваю исходный код, распоковываю его
 prepare_server:
   stage: prepare
   tags: [home-server]
+  # Использую легкий образ + такой же использовал в Dockerfile
   image: alpine:3.14
   script:
-    - echo "Hello, GitLab CI!"
     - echo "START PREPARE STAGE"
-    - pwd
     - apk add --no-cache wget unzip
     - wget -O $(pwd)/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
     - unzip sqlite-amalgamation-3260000.zip
     - rm -rf sqlite-amalgamation-3260000.zip
-    - ls -la
   artifacts:
-    paths: 
+    paths: # Нам нужно перенести в следующий stage исходный код для его компиляции 
       - /builds/zeroking783/infotex_test/sqlite-amalgamation-3260000
 
+
+# В этом stage я компилирую динамическую билиотеку
 compilation_binory:
   stage: compilation 
   tags: [home-server]
@@ -45,5 +39,6 @@ compilation_binory:
     - ls -la ../sqlite-amalgamation-3260000
     - cmake ../sqlite-amalgamation-3260000
     - make > ../log/compilation.log 2>&1
+    - cat ../log/compilation.log
     - ls -la ..
     - ls -la

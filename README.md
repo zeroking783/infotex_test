@@ -8,7 +8,7 @@ wget https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
 unzip sqlite-amalgamation-3260000.zip
 ```
 ## 2. Руководство
-Пока не увидел там чего-то мега полезного. Ну окей, SQLite3 можно собрать самому. Но это используется для какого-то тюнинга, но мне не нужно никак тюнить. Тогда просто компилирую с базовыми настройками
+Прочитал руководство для сборки SQLite3. Обычно это используется для какого-то тюнинга программ или если на твою операционную систему нет готового пакета. Но мне ничего тюнить не надо, поэтому просто базовая компиляция через CMake.
 
 ## 3. CMakeLists.txt и компиляция
 Поскольку не просят как-то тюнить SQLite3 на процессе компиляции, то используем просто базовые настройки в `CMakeLists.txt`. Это такой файл, в котором описывается как компилировать программу на C (как `Dockerfile` для контейнеров). Напишем его
@@ -59,7 +59,7 @@ make
 Результатом всех описанных действий будет файл скомпилированной динамеческой библиотеки `sqlite3.so`.
 
 ## 4. Docker
-Теперь нужно написать `Dockerfile`, в котором будет выполняться все вышеописанное. В ТЗ есть упомянание о легковесности образа, так что используем многослойную сборку
+Теперь нужно написать `Dockerfile`, в котором будет выполняться все вышеописанное. В ТЗ есть упомянание о легковесности образа, так что используем многослойную сборку и базовый образ alphine
 ```Dockerfile
 # Возьму alphine за базовый образ, потому что он самый легковесный
 FROM alpine:3.14 as builder
@@ -122,7 +122,7 @@ sudo docker push bakvivas/build-sqlite3
 ```
 
 ## 5. Подготовка виртуальной машины
-Буду делать в Vagrant, потому что до этого уже тестировал в нем playbookи Ansible. Нужно написать Vagrantfile, который будет конфигурировать виртаульную машину
+Буду делать в Vagrant, потому что до этого уже тестировал в нем `playbook`и Ansible. Нужно написать `Vagrantfile`, который будет конфигурировать виртаульную машину
 ```Vagrantfile
 Vagrant.configure("2") do |config|
 
@@ -136,11 +136,11 @@ Vagrant.configure("2") do |config|
 	end
 end
 ```
-Я взял самый последний debian образ на Vagrant Box Catalog, из-за ограничений пришлось скачать.
+Я взял самый последний debian образ на Vagrant Box Catalog, из-за ограничений пришлось скачать и указать путь к нему.
 
 ## 6. Playbook для установки Docker
 Я привык такие вещи выносить в отдельные роли, но делаю как в ТЗ. 
-Не буду сюда переписывать playbook (install_docker.yaml) и inventory (inventory.ini), займут слишком много места и там ничего сложного нет. Запускаю playbook командой
+Не буду сюда переписывать playbook (`install_docker.yaml`) и inventory (`inventory.ini`), займут слишком много места и там ничего сложного нет. Запускаю playbook командой
 ``` bash
 ansible-playbook install_docker.yaml -i inventory.ini --ask-become-pass
 ```
@@ -148,27 +148,105 @@ ansible-playbook install_docker.yaml -i inventory.ini --ask-become-pass
 
 ## 7. Выполнение пунктов 1-4 с помощью playbook
 Как я понял, нужно просто сделать все действия из пунктов 1-4, но с помощью Ansible.
-Все выполняет playbook (all_in_vagrant.yaml). Логи сохраняются в привычную директорию /var/log/sqlite3/compilation.log. Также к docker build на виртуальной машине добавил docker pull image.
+Все выполняет playbook (`all_in_vagrant.yaml`). Логи сохраняются в привычную директорию `/var/log/sqlite3/compilation.log`. Также к docker build на виртуальной машине добавил docker pull image.
 
 ## 8. Дополнительная часть
-Теперь надо сделать пункты 1-4 с помощью gitlab-ci. Для этого нужно запустить свой gitlab runner. Я буду это делать с помощью docker
-``` bash
-docker pull gitlab/gitlab-runner:latest   
+Теперь надо сделать пункты 1-4 с помощью gitlab-ci. Для этого нужно запустить свой gitlab runner. У меня есть свой готовый gitlab runner на домашнем сервере, он работает через прокси сервера с белым ip. На нем у меня executor - docker. 
 
-# Делаем сохранение конфигов и поддержку запуска контейнеров внутри контейнера
-docker run -d --name gitlab-runner \
-  --restart always \
-  -v /srv/gitlab-runner/config:/etc/gitlab-runner \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  gitlab/gitlab-runner:latest
+Напишу код для .gitlab-ci.yml и немного дам пояснений
+``` .gitlab-ci.yml
+stages:
+- check
+- prepare
+- compilation
+- build_images
+- cleanup
 
-# Регистрируем gitlab runner
-# Executor - docker
-# Токен берется в самом gitlab
-docker exec -it gitlab-runner gitlab-runner register
+  
 
-# Перезапускаем для принятия изменения
-docker restart gitlab-runner
+# Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, если в репозитории уже лежит скомпилированная библиотека)
+
+check_and_preparation:
+
+stage: check
+
+tags: [home-server]
+
+image: alpine:3.14
+
+script:
+
+- ls -la
+
+  
+
+prepare_server:
+
+stage: prepare
+
+tags: [home-server]
+
+image: alpine:3.14
+
+script:
+
+- echo "Hello, GitLab CI!"
+
+- echo "START PREPARE STAGE"
+
+- pwd
+
+- apk add --no-cache wget unzip
+
+- wget -O $(pwd)/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
+
+- unzip sqlite-amalgamation-3260000.zip
+
+- rm -rf sqlite-amalgamation-3260000.zip
+
+- ls -la
+
+artifacts:
+
+paths:
+
+- /builds/zeroking783/infotex_test/sqlite-amalgamation-3260000
+
+  
+
+compilation_binory:
+
+stage: compilation
+
+tags: [home-server]
+
+image: alpine:3.14
+
+dependencies:
+
+- prepare_server
+
+script:
+
+- apk add --no-cache cmake gcc make g++
+
+- cp CMakeLists.txt sqlite-amalgamation-3260000/CMakeLists.txt
+
+- mkdir log
+
+- mkdir build
+
+- cd build
+
+- ls -la ../sqlite-amalgamation-3260000
+
+- cmake ../sqlite-amalgamation-3260000
+
+- make > ../log/compilation.log 2>&1
+
+- ls -la ..
+
+- ls -la
 ```
 После этого новйы runner должен отобразиться в gitlab
 
