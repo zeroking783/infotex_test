@@ -9,12 +9,14 @@ stages:
 check_and_preparation:
     stage: check
     tags: [home-server]
+    image: alpine:3.14
     script:
       - ls -la 
 
 prepare_server:
   stage: prepare
   tags: [home-server]
+  image: alpine:3.14
   script:
     - echo "START PREPARE STAGE"
     - apk add --no-cache wget unzip
@@ -29,6 +31,7 @@ prepare_server:
 compilation_binory:
   stage: compilation 
   tags: [home-server]
+  image: alpine:3.14
   script: 
     - mkdir /home/sqlite3/build
     - mkdir /var/log/sqlite3
