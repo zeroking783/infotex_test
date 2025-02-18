@@ -157,6 +157,7 @@ ansible-playbook install_docker.yaml -i inventory.ini --ask-become-pass
 stages:
 - prepare
 - compilation  
+
 # Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage,
 # если в репозитории уже лежит скомпилированная библиотека).
 # Поэтому в первом stage скачиваю исходный код, распоковываю его
