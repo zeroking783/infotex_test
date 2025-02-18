@@ -7,6 +7,7 @@ stages:
 # Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, если в репозитории уже лежит скомпилированная библиотека)
 prepare_server:
   stage: prepare
+  tags: [home-server]
   script:
     - echo "START PREPARE STAGE"
     - apk add --no-cache wget unzip
@@ -20,6 +21,7 @@ prepare_server:
 
 compilation_binory:
   stage: compilation 
+  tags: [home-server]
   script: 
     - mkdir /home/sqlite3/build
     - mkdir /var/log/sqlite3
