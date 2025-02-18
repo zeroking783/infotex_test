@@ -1,4 +1,4 @@
-## 1. Архив
+# 1. Архив
 В этом шаге меня просто просят скачать архив в котором хранятся файлы для сборки `sqlite3.so`. Качаем его командой
 ```bash
 wget https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
@@ -151,23 +151,45 @@ ansible-playbook install_docker.yaml -i inventory.ini --ask-become-pass
 Все выполняет playbook (all_in_vagrant.yaml). Логи сохраняются в привычную директорию /var/log/sqlite3/compilation.log. Также к docker build на виртуальной машине добавил docker pull image.
 
 ## 8. Дополнительная часть
-Теперь надо сделать пункты 1-4 с помощью gitlab-ci. Для этого нужно запустить свой gitlab runner. Я буду это делать с помощью docker
-``` bash
-docker pull gitlab/gitlab-runner:latest   
-
-# Делаем сохранение конфигов и поддержку запуска контейнеров внутри контейнера
-docker run -d --name gitlab-runner \
-  --restart always \
-  -v /srv/gitlab-runner/config:/etc/gitlab-runner \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  gitlab/gitlab-runner:latest
-
-# Регистрируем gitlab runner
-# Executor - docker
-# Токен берется в самом gitlab
-docker exec -it gitlab-runner gitlab-runner register
-
-# Перезапускаем для принятия изменения
-docker restart gitlab-runner
+Теперь надо сделать пункты 1-4 с помощью gitlab-ci. Для этого нужно запустить свой gitlab runner. У меня есть свой готовый gitlab runner на домашнем сервере, он работает через прокси сервера с белым ip. На нем у меня executor - docker. 
+Напишу код для .gitlab-ci.yml и немного дам пояснений
+``` .gitlab-ci.yml
+stages:
+- prepare
+- compilation  
+# Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage,
+# если в репозитории уже лежит скомпилированная библиотека).
+# Поэтому в первом stage скачиваю исходный код, распоковываю его
+prepare_server:
+	stage: prepare
+		tags: [home-server]
+		# Использую легкий образ + такой же использовал в Dockerfile
+		image: alpine:3.14
+		script:
+			- echo "START PREPARE STAGE"
+			- apk add --no-cache wget unzip
+			- wget -O $(pwd)/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
+			- unzip sqlite-amalgamation-3260000.zip
+			- rm -rf sqlite-amalgamation-3260000.zip
+		artifacts:
+			paths: # Нам нужно перенести в следующий stage исходный код для его компиляции
+				- /builds/zeroking783/infotex_test/sqlite-amalgamation-3260000
+  
+# В этом stage я компилирую динамическую билиотеку
+compilation_binory:
+	stage: compilation
+		tags: [home-server]
+		image: alpine:3.14
+		dependencies:
+			- prepare_server
+		script:
+			- apk add --no-cache cmake gcc make g++
+			- cp CMakeLists.txt sqlite-amalgamation-3260000/CMakeLists.txt
+			- mkdir log
+			- mkdir build
+			- cd build
+			- ls -la ../sqlite-amalgamation-3260000
+			- cmake ../sqlite-amalgamation-3260000
+			- make > ../log/compilation.log 2>&1
 ```
-После этого новйы runner должен отобразиться в gitlab.
+Получилось 2 stage, который выполняют пункты 1-3. Первый stage `prepare` скачивает архив, разархивирует его правильно. Второй stage `compilation` произодит компиляцию исходного кода. Для выполнения pipeline создал отдельную ветку в git `branch_runner`, чтобы были только необходимые файлы (`.gitlab-ci.yml`, `CMakeLists.txt`).
