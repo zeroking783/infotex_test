@@ -18,9 +18,7 @@ prepare_server:
   tags: [home-server]
   image: alpine:3.14
   script:
-<<<<<<< HEAD
     - echo "Hello, GitLab CI!"
-=======
     - echo "START PREPARE STAGE"
     - pwd
     - apk add --no-cache wget unzip
@@ -48,4 +46,3 @@ compilation_binory:
     - make > ../log/compilation.log 2>&1
     - ls -la ..
     - ls -la
->>>>>>> d363e4368d152c61b24475c3a1efacbb85104f06
