@@ -22,7 +22,7 @@ prepare_server:
     - apk add --no-cache wget unzip
     - mkdir /home/sqlite3
     - wget -O /home/sqlite3/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
-    - unzip /home/sqlite3/sqlite-amalgamation-3260000.zip
+    - unzip /home/sqlite3/sqlite-amalgamation-3260000.zip -d /home/sqlite3
     - rm -rf /home/sqlite3/sqlite-amalgamation-3260000.zip
     - ls -la /home/sqlite3
     - ls -la /home/sqlite3/sqlite-amalgamation-3260000
