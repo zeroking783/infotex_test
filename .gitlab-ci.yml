@@ -23,7 +23,7 @@ prepare_server:
     - pwd
     - apk add --no-cache wget unzip
     - wget -O $(pwd)/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
-    - unzip sqlite-amalgamation-3260000.zip -d sqlite-amalgamation-3260000
+    - unzip sqlite-amalgamation-3260000.zip
     - rm -rf sqlite-amalgamation-3260000.zip
     - ls -la
   artifacts:
