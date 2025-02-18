@@ -26,4 +26,3 @@ compilation_binory:
     - mkdir /home/sqlite3/build
     - mkdir /var/log/sqlite3
     - cd /home/sqlite3/build 
-    - 
