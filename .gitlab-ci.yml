@@ -32,6 +32,8 @@ compilation_binory:
   stage: compilation 
   tags: [home-server]
   image: alpine:3.14
+  dependencies:
+    - prepare_server
   script: 
     - mkdir /home/sqlite3/build
     - mkdir /var/log/sqlite3
