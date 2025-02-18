@@ -1,8 +1,6 @@
 stages:
   - prepare
   - compilation
-  - build_images
-  - cleanup
 
 # Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, 
 # если в репозитории уже лежит скомпилированная библиотека).
@@ -18,6 +16,8 @@ prepare_server:
     - wget -O $(pwd)/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
     - unzip sqlite-amalgamation-3260000.zip
     - rm -rf sqlite-amalgamation-3260000.zip
+  only:
+    - branch_runner
   artifacts:
     paths: # Нам нужно перенести в следующий stage исходный код для его компиляции 
       - /builds/zeroking783/infotex_test/sqlite-amalgamation-3260000
@@ -39,3 +39,5 @@ compilation_binory:
     - ls -la ../sqlite-amalgamation-3260000
     - cmake ../sqlite-amalgamation-3260000
     - make > ../log/compilation.log 2>&1
+  only:
+    - branch_runner
