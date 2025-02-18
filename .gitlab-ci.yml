@@ -36,4 +36,11 @@ compilation_binory:
   dependencies:
     - prepare_server
   script: 
+    - cp CMakeLists.txt sqlite-amalgamation-3260000/CMakeLists.txt
+    - mkdir log
+    - mkdir build
+    - cd build
+    - cmake ../sqlite-amalgamation-3260000
+    - make > ../log/compilation.log 2>&1
+    - ls -la ..
     - ls -la
