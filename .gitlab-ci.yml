@@ -1,10 +1,17 @@
 stages:
+  - check
   - prepare
   - compilation
   - build_images
   - cleanup
 
 # Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, если в репозитории уже лежит скомпилированная библиотека)
+check_and_preparation:
+    stage: check
+    tags: [home-server]
+    script:
+      - ls -la 
+
 prepare_server:
   stage: prepare
   tags: [home-server]
