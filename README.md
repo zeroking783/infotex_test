@@ -214,7 +214,9 @@ compilation_binory:
 		`Vagrantfile`
 - Скрипт установки Docker на виртуальной машине
 		`install_docker.yaml`
+		`inventory.ini`
 - Скрипт, который выполняет пунты 1-4 с помощью Ansible
 		`all_in_vagrant.yaml`
+		`inventory.ini`
 - Скрипт .gitlab-ci.yml
 		`.gitlab-ci.yml`
