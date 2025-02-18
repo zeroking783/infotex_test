@@ -1,7 +1,51 @@
 stages:
-  - test
+  - check
+  - prepare
+  - compilation
+  - build_images
+  - cleanup
 
-test_job:
-  stage: test
+# Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, если в репозитории уже лежит скомпилированная библиотека)
+check_and_preparation:
+    stage: check
+    tags: [home-server]
+    image: alpine:3.14
+    script:
+      - ls -la 
+
+prepare_server:
+  stage: prepare
+  tags: [home-server]
+  image: alpine:3.14
   script:
+<<<<<<< HEAD
     - echo "Hello, GitLab CI!"
+=======
+    - echo "START PREPARE STAGE"
+    - pwd
+    - apk add --no-cache wget unzip
+    - wget -O $(pwd)/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
+    - unzip sqlite-amalgamation-3260000.zip -d sqlite-amalgamation-3260000
+    - rm -rf sqlite-amalgamation-3260000.zip
+    - ls -la
+  artifacts:
+    paths: 
+      - /builds/zeroking783/infotex_test/sqlite-amalgamation-3260000
+
+compilation_binory:
+  stage: compilation 
+  tags: [home-server]
+  image: alpine:3.14
+  dependencies:
+    - prepare_server
+  script: 
+    - apk add --no-cache cmake gcc make g++
+    - cp CMakeLists.txt sqlite-amalgamation-3260000/CMakeLists.txt
+    - mkdir log
+    - mkdir build
+    - cd build
+    - cmake ../sqlite-amalgamation-3260000
+    - make > ../log/compilation.log 2>&1
+    - ls -la ..
+    - ls -la
+>>>>>>> d363e4368d152c61b24475c3a1efacbb85104f06
