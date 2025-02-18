@@ -28,7 +28,7 @@ prepare_server:
     - ls -la /home/sqlite3/sqlite-amalgamation-3260000
   artifacts:
     paths: 
-      - /home/sqlite3/sqlite-amalgamation-3260000
+      - /home/sqlite3/sqlite-amalgamation-3260000/
 
 compilation_binory:
   stage: compilation 
