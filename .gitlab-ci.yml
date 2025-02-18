@@ -21,18 +21,13 @@ prepare_server:
     - echo "START PREPARE STAGE"
     - pwd
     - apk add --no-cache wget unzip
-    - mkdir /home/sqlite3
-    - wget -O /home/sqlite3/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
-    - unzip /home/sqlite3/sqlite-amalgamation-3260000.zip -d /home/sqlite3
-    - rm -rf /home/sqlite3/sqlite-amalgamation-3260000.zip
-    - ls -la /
-    - ls -la /builds
-    - ls -la /builds/zeroking783
-    - ls -la /home/sqlite3
-    - ls -la /home/sqlite3/sqlite-amalgamation-3260000
+    - wget -O $(pwd)/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
+    - unzip sqlite-amalgamation-3260000.zip -d sqlite-amalgamation-3260000
+    - rm -rf sqlite-amalgamation-3260000.zip
+    - ls -la
   artifacts:
     paths: 
-      - /home/sqlite3/sqlite-amalgamation-3260000/
+      - /builds/zeroking783/infotex_test/sqlite-amalgamation-3260000
 
 compilation_binory:
   stage: compilation 
