@@ -36,8 +36,4 @@ compilation_binory:
   dependencies:
     - prepare_server
   script: 
-    - ls -la /home
-    - ls -la /home/sqlite3
-    - mkdir /home/sqlite3/build
-    - mkdir /var/log/sqlite3
-    - cd /home/sqlite3/build 
+    - ls -la
