@@ -156,156 +156,44 @@ ansible-playbook install_docker.yaml -i inventory.ini --ask-become-pass
 Напишу код для .gitlab-ci.yml и немного дам пояснений
 ``` .gitlab-ci.yml
 stages:
-- check
 - prepare
-- compilation
-- build_images
-- cleanup
+- compilation  
 
-  
 
-# Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, если в репозитории уже лежит скомпилированная библиотека)
-
-check_and_preparation:
-
-stage: check
-
-tags: [home-server]
-
-image: alpine:3.14
-
-script:
-
-- ls -la
-
-  
-
+# Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage,
+# если в репозитории уже лежит скомпилированная библиотека).
+# Поэтому в первом stage скачиваю исходный код, распоковываю его
 prepare_server:
-
-stage: prepare
-
-tags: [home-server]
-
-image: alpine:3.14
-
-script:
-
-- echo "Hello, GitLab CI!"
-
-- echo "START PREPARE STAGE"
-
-- pwd
-
-- apk add --no-cache wget unzip
-
-- wget -O $(pwd)/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
-
-- unzip sqlite-amalgamation-3260000.zip
-
-- rm -rf sqlite-amalgamation-3260000.zip
-
-- ls -la
-
-artifacts:
-
-paths:
-
-- /builds/zeroking783/infotex_test/sqlite-amalgamation-3260000
-
+	stage: prepare
+		tags: [home-server]
+		# Использую легкий образ + такой же использовал в Dockerfile
+		image: alpine:3.14
+		script:
+			- echo "START PREPARE STAGE"
+			- apk add --no-cache wget unzip
+			- wget -O $(pwd)/sqlite-amalgamation-3260000.zip https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
+			- unzip sqlite-amalgamation-3260000.zip
+			- rm -rf sqlite-amalgamation-3260000.zip
+		artifacts:
+			paths: # Нам нужно перенести в следующий stage исходный код для его компиляции
+				- /builds/zeroking783/infotex_test/sqlite-amalgamation-3260000
   
 
+# В этом stage я компилирую динамическую билиотеку
 compilation_binory:
-
-stage: compilation
-
-tags: [home-server]
-
-image: alpine:3.14
-
-dependencies:
-
-- prepare_server
-
-script:
-
-- apk add --no-cache cmake gcc make g++
-
-- cp CMakeLists.txt sqlite-amalgamation-3260000/CMakeLists.txt
-
-- mkdir log
-
-- mkdir build
-
-- cd build
-
-- ls -la ../sqlite-amalgamation-3260000
-
-- cmake ../sqlite-amalgamation-3260000
-
-- make > ../log/compilation.log 2>&1
-
-- ls -la ..
-
-- ls -la
+	stage: compilation
+		tags: [home-server]
+		image: alpine:3.14
+		dependencies:
+			- prepare_server
+		script:
+			- apk add --no-cache cmake gcc make g++
+			- cp CMakeLists.txt sqlite-amalgamation-3260000/CMakeLists.txt
+			- mkdir log
+			- mkdir build
+			- cd build
+			- ls -la ../sqlite-amalgamation-3260000
+			- cmake ../sqlite-amalgamation-3260000
+			- make > ../log/compilation.log 2>&1
 ```
-После этого новйы runner должен отобразиться в gitlab
-
-```
-stages:
-
-- prepare
-
-- compilation
-
-# - build_images
-
-# - cleanup
-
-  
-
-# Допустим имеем пустой репозиторий (иначе зачем нужны все эти stage, если в репозитории уже лежит скомпилированная библиотека)
-
-prepare_server:
-
-stage: prepare
-
-script:
-
-- echo "START PREPARE STAGE"
-
-- ls -la
-
-- apk add --no-cache wget unzip
-
-- wget https://www.sqlite.org/2018/sqlite-amalgamation-3260000.zip
-
-- unzip /home/sqlite3/sqlite-amalgamation-3260000.zip
-
-- rm -rf /home/sqlite3/sqlite-amalgamation-3260000.zip
-
-- ls -la
-
-only:
-
-- branch_runner
-
-artifacts:
-
-paths:
-
-- /home/sqlite3/sqlite-amalgamation-3260000/
-
-  
-
-compilation_binory:
-
-stage: compilation
-
-script:
-
-- ls -la
-
-only:
-
-- branch_runner
-```
+Получилось 2 stage, который выполняют пункты 1-3. Первый stage `prepare` скачивает архив, разархивирует его правильно. Второй stage `compilation` произодит компиляцию исходного кода. Для выполнения ci создал отдельную ветку в git `branch_runner`, чтобы были только необходимые файлы (`.gitlab-ci.yml`, `CMakeLists.txt`). 
