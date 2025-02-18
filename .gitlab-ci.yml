@@ -36,7 +36,7 @@ compilation_binory:
   dependencies:
     - prepare_server
   script: 
-    - apk add --no-cache build-base
+    - apk add --no-cache cmake gcc make g++
     - cp CMakeLists.txt sqlite-amalgamation-3260000/CMakeLists.txt
     - mkdir log
     - mkdir build
