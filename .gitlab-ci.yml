@@ -42,6 +42,7 @@ compilation_binory:
     - mkdir log
     - mkdir build
     - cd build
+    - ls -la ../sqlite-amalgamation-3260000
     - cmake ../sqlite-amalgamation-3260000
     - make > ../log/compilation.log 2>&1
     - ls -la ..
